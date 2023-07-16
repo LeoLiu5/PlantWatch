@@ -1,0 +1,83 @@
+{
+  "project_info": {
+    "project_number": "873079511287",
+    "firebase_url": "https://lettucewatch-ab76c-default-rtdb.europe-west1.firebasedatabase.app",
+    "project_id": "lettucewatch-ab76c",
+    "storage_bucket": "lettucewatch-ab76c.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:873079511287:android:a909c45302fa20823b1bf2",
+        "android_client_info": {
+          "package_name": "com.example.lettuce_watch"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "873079511287-gomim049orhjfr088avpu02apqtvlvfh.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBjTw4OPBNceGg1FpTkuR-r_QXcldWiwos"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "873079511287-gomim049orhjfr088avpu02apqtvlvfh.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "873079511287-0utbjhe74122g54quv80oq6rek3e95ql.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.lettuceWatch"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:873079511287:android:77db90a67abc39253b1bf2",
+        "android_client_info": {
+          "package_name": "com.example.lettucewatch"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "873079511287-gomim049orhjfr088avpu02apqtvlvfh.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBjTw4OPBNceGg1FpTkuR-r_QXcldWiwos"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "873079511287-gomim049orhjfr088avpu02apqtvlvfh.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "873079511287-0utbjhe74122g54quv80oq6rek3e95ql.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.lettuceWatch"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
