@@ -8,6 +8,8 @@ import 'package:flutter_ffmpeg/flutter_ffmpeg.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:video_player/video_player.dart';
+import 'package:youtube_player_flutter/youtube_player_flutter.dart';
+import 'home_screen.dart';
 
 class FolderListScreenProgress extends StatefulWidget {
   @override
@@ -45,10 +47,29 @@ class _FolderListScreenState extends State<FolderListScreenProgress> {
     fetchFolders().then((folderList) {
       setState(() {
         availableFolders = folderList;
+        // Sort the available folders based on the date in descending order
+        availableFolders.sort((folder1, folder2) {
+          DateTime date1 = _extractDateFromPath(folder1['path']);
+          DateTime date2 = _extractDateFromPath(folder2['path']);
+          return date2.compareTo(date1);
+        });
       });
     }).catchError((error) {
       print('Error fetching folders: $error');
     });
+  }
+
+  DateTime _extractDateFromPath(String path) {
+    // Extract the date substring from the path (format: "dd-mm-yy")
+    String dateString = path.split('/').last.split('%2F').first;
+    List<String> dateParts = dateString.split('-');
+    int day = int.parse(dateParts[0]);
+    int month = int.parse(dateParts[1]);
+    int year =
+        int.parse('20${dateParts[2]}'); // Adding "20" to make it 4-digit year
+
+    // Return the DateTime object
+    return DateTime(year, month, day);
   }
 
   Future<List<Folder>> fetchFolders() async {
@@ -222,6 +243,15 @@ class _FolderListScreenState extends State<FolderListScreenProgress> {
     }
   }
 
+  void playYoutubeVideo() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => YoutubeVideoPlayerScreen("aZHMp5tJoS4"),
+      ),
+    );
+  }
+
   Widget _buildSelectedFoldersList() {
     if (selectedFolders.isEmpty) {
       return Container(); // Return an empty container if no folders are selected
@@ -254,6 +284,26 @@ class _FolderListScreenState extends State<FolderListScreenProgress> {
       body: ListView(
         padding: EdgeInsets.all(32.0),
         children: [
+          SizedBox(height: 32.0),
+          ElevatedButton(
+            onPressed: playYoutubeVideo,
+            style: ElevatedButton.styleFrom(
+              primary: Colors.black,
+              onPrimary: Colors.white,
+              padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: Text(
+              'Time-Lapse Video',
+              style: TextStyle(
+                fontSize: 19,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 1.4,
+              ),
+            ),
+          ),
           SizedBox(height: 32.0),
           ElevatedButton(
             onPressed: playLocalVideo,
@@ -412,6 +462,29 @@ class _FolderListScreenState extends State<FolderListScreenProgress> {
           SizedBox(height: 16.0),
         ],
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endContained,
+      floatingActionButton: Stack(
+        children: [
+          Positioned(
+            bottom: 0,
+            right: 0,
+            child: FloatingActionButton(
+              heroTag: null,
+              focusColor: Colors.green,
+              autofocus: true,
+              tooltip: 'Go back to the home page',
+              onPressed: () {
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(
+                    builder: (context) => const MyHomePage(),
+                  ),
+                );
+              },
+              child: const Icon(Icons.home),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -496,6 +569,124 @@ class _FolderListScreenState extends State<FolderListScreenProgress> {
   }
 }
 
+class YoutubeVideoPlayerScreen extends StatefulWidget {
+  final String videoId;
+
+  YoutubeVideoPlayerScreen(this.videoId);
+
+  @override
+  _YoutubeVideoPlayerScreenState createState() =>
+      _YoutubeVideoPlayerScreenState();
+}
+
+class _YoutubeVideoPlayerScreenState extends State<YoutubeVideoPlayerScreen>
+    with ScreenLoader {
+  late YoutubePlayerController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    startLoading();
+
+    _controller = YoutubePlayerController(
+      initialVideoId: widget.videoId,
+      flags: YoutubePlayerFlags(
+        autoPlay: true,
+        mute: false,
+      ),
+    );
+
+    _controller.addListener(() {
+      // Add actions to perform when the video player is ready
+    });
+
+    stopLoading();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _pauseVideo() {
+    _controller.pause();
+  }
+
+  void _playVideo() {
+    _controller.play();
+  }
+
+  void _toggleControls() {
+    if (_controller.value.isPlaying) {
+      _pauseVideo();
+    } else {
+      _playVideo();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: Stack(
+        children: [
+          Center(
+            child: YoutubePlayer(
+              controller: _controller,
+              showVideoProgressIndicator: true,
+              progressIndicatorColor: Colors.blueAccent,
+              progressColors: ProgressBarColors(
+                playedColor: Colors.blue,
+                handleColor: Colors.blueAccent,
+              ),
+              onReady: () {
+                // Add actions to perform when the video player is ready
+              },
+              onEnded: (error) {
+                // Handle any errors that occur while playing the video
+              },
+            ),
+          ),
+          GestureDetector(
+            onTap: _toggleControls,
+            child: AnimatedOpacity(
+              opacity: _controller.value.isPlaying ? 0.0 : 1.0,
+              duration: Duration(milliseconds: 300),
+              child: Container(
+                color: Colors.transparent,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    SizedBox(height: 40.0), // Top spacing
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        IconButton(
+                          icon: Icon(
+                            Icons.arrow_back,
+                            size: 32.0,
+                            color: Colors.white,
+                          ),
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                        ),
+                      ],
+                    ),
+                    Expanded(child: Container()), // Spacer
+                    SizedBox(height: 40.0), // Bottom spacing
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class LocalVideoPlayerScreen extends StatelessWidget {
   final String videoPath;
 
@@ -542,7 +733,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
     _controller.addListener(() {
       setState(() {
         _seekSliderValue = _controller.value.position.inSeconds.toDouble() /
-            _controller.value.duration.inSeconds.toDouble();
+            (_controller.value.duration.inSeconds.toDouble() == 0
+                ? 1
+                : _controller.value.duration.inSeconds.toDouble());
       });
     });
     super.initState();

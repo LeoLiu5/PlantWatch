@@ -278,7 +278,7 @@ class _statusState extends State<status> with ScreenLoader {
                     child: Padding(
                       padding: EdgeInsets.all(8.0),
                       child: Text(
-                        'PlantWatch',
+                        'Plant Watch',
                         textAlign: TextAlign.left,
                         style: TextStyle(
                           fontFamily: AppTheme.fontName,

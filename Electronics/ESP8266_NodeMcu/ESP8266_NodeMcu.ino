@@ -26,7 +26,7 @@ String LEDstatus = "LED/Status";
 #define FIREBASE_HOST "testel-23702.firebaseio.com"
 float hum;   //Stores humidity value
 float temp;  //Stores temperature value
-const char* ssid = "CE-Hub-Student";
+const char* ssid = "UCL_IoT";
 const char* password = "";
 // Date and time
 Timezone GB;
@@ -55,7 +55,8 @@ void setup() {
   pinMode(LED_PIN, OUTPUT);
   pinMode(DHTPIN, INPUT);
   dhtA.begin();
-
+  Serial.print("ESP Board MAC Address:  ");
+  Serial.println(WiFi.macAddress());
   configF.api_key = API_KEY;
   auth.user.email = USER_EMAIL;
   auth.user.password = USER_PASSWORD;

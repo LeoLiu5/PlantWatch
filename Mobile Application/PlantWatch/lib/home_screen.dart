@@ -49,7 +49,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                 Expanded(
                   child: Builder(
                     builder: (BuildContext context) {
-                      //Display Pictures and titles for the 3d printers, TV screens, and soldering sattion in a grid view (two items in a row):
+                      //Display Pictures and titles in a grid view (two items in a row):
                       return GridView(
                         padding: const EdgeInsets.only(
                           left: 12,
@@ -105,13 +105,15 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   ),
                 ),
                 Padding(
-                  padding: EdgeInsets.only(bottom: 30, top: 20),
+                  padding: EdgeInsets.only(bottom: 30),
                   child: Align(
                     child: SizedBox(
                       height: 35,
-                      width: 110,
+                      width: 90,
                       child: ElevatedButton(
                         style: ButtonStyle(
+                            backgroundColor:
+                                MaterialStateProperty.all(Colors.green),
                             // Circular corner
                             shape: MaterialStateProperty.all(
                                 const StadiumBorder(
@@ -153,7 +155,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     var brightness = MediaQuery.of(context).platformBrightness;
     bool isLightMode = brightness == Brightness.light;
     return SizedBox(
-      height: AppBar().preferredSize.height,
+      height: AppBar().preferredSize.height + 80,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
@@ -166,16 +168,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           ),
           Expanded(
             child: Center(
-              child: Padding(
-                padding: const EdgeInsets.only(top: 20),
-                child: Text(
-                  'Plant Watch',
-                  style: TextStyle(
-                    fontSize: 26,
-                    color: isLightMode ? AppTheme.darkText : AppTheme.white,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
+              child: Container(
+                width: 160,
+                height: 160,
+                child: Image.asset('assets/app/icon1.png'),
               ),
             ),
           ),
@@ -240,11 +236,11 @@ class HomeListView extends StatelessWidget {
               child: ClipRRect(
                 borderRadius: const BorderRadius.all(Radius.circular(14.0)),
                 child: Stack(
-                  alignment: AlignmentDirectional.center,
+                  alignment: AlignmentDirectional.topCenter,
                   children: <Widget>[
                     Positioned(
-                      top: 0,
-                      bottom: 35,
+                      // top: 0,
+                      // bottom: 35,
                       child: Image.asset(
                         listData!.imagePath,
                         // fit: BoxFit.scaleDown,
@@ -253,7 +249,7 @@ class HomeListView extends StatelessWidget {
                     ),
                     Padding(
                       padding: EdgeInsets.only(
-                          top: MediaQuery.of(context).size.height * 0.3),
+                          top: MediaQuery.of(context).size.height * 0.25),
                       child: Text(
                         listData!.title,
                         textAlign: TextAlign.center,

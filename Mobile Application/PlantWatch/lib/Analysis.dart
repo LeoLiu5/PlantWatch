@@ -20,7 +20,7 @@ class _FolderListScreenAnalysisState extends State<FolderListScreenAnalysis> {
     super.initState();
     fetchFolders().then((folderList) {
       setState(() {
-        folders = folderList.reversed.toList(); // Reverse the order of folders
+        folders = folderList.toList(); // Reverse the order of folders
       });
     });
   }
@@ -29,6 +29,21 @@ class _FolderListScreenAnalysisState extends State<FolderListScreenAnalysis> {
     ListResult result = await FirebaseStorage.instance.ref().listAll();
     List<String> folders =
         result.prefixes.map((folder) => folder.name).toList();
+    // Sort the folders list based on the date in descending order
+    // Sort the folders list based on the month (substring from index 3 to 5) and then on the date (substring from index 0 to 2)
+    folders.sort((folder1, folder2) {
+      String monthSubstring1 = folder1.substring(3, 5);
+      String monthSubstring2 = folder2.substring(3, 5);
+      int monthComparison = monthSubstring2.compareTo(monthSubstring1);
+      if (monthComparison != 0) {
+        return monthComparison; // Sort based on the month first
+      } else {
+        String dateSubstring1 = folder1.substring(0, 2);
+        String dateSubstring2 = folder2.substring(0, 2);
+        return dateSubstring2.compareTo(
+            dateSubstring1); // Sort based on the date if the months are the same
+      }
+    });
     return folders;
   }
 

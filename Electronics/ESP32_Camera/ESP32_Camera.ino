@@ -11,7 +11,7 @@
 #include <ezTime.h>
 
 // Replace with your network credentials
-const char* ssid = "CE-Hub-Student";
+const char* ssid = "UCL_IoT";
 const char* password = "";
 
 // Date and time
@@ -167,7 +167,8 @@ void setup() {
   initSPIFFS();
   WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0);
   initCamera();
-
+  Serial.print("ESP camera MAC Address:  ");
+  Serial.println(WiFi.macAddress());
   size_t heapSize = ESP.getHeapSize();
   size_t freeHeap = ESP.getFreeHeap();
 
@@ -187,7 +188,7 @@ void setup() {
   Firebase.reconnectWiFi(true);
   waitForSync();
   GB.setLocation("Europe/London");
-  removeAllFiles();
+  // removeAllFiles();
 
 }
 
