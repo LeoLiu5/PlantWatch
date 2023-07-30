@@ -60,31 +60,31 @@ dependencies:
   tflite_flutter: ^0.10.1
   image_picker: ^1.0.0
   youtube_player_flutter: ^8.1.2
+  flutter_launcher_icons: ^0.11.0
 
 
-dev_dependencies:
-    flutter_launcher_icons: "^0.11.0"
 
 flutter_icons:
-    android: "launcher_icon"
+    android: true
     ios: true # can specify file name here e.g. "My-Launcher-Icon"
-    image_path_ios: "assets/app/icon1.png"
-    image_path_android: "assets/app/icon1.png"
+
+    image_path: "assets/icon1.jpg"
     min_sdk_android: 16 # android min sdk min:16, default 21
     web:
         generate: true
-        image_path: "assets/app/icon1.png"
+        image_path: "assets/icon1.jpg"
         background_color: "#hexcode"
         theme_color: "#hexcode"
     windows:
         generate: true
-        image_path: "assets/app/icon1.png"
-        icon_size: 48 # min:48, max:256, default: 48
+        image_path: "assets/icon1.jpg"
+        icon_size: 128 # min:48, max:256, default: 48
     macos:
         generate: true
-        image_path: "assets/app/icon1.png"
+        image_path: "assets/icon1.jpg"
     
-
+    dev_dependencies:
+    flutter_launcher_icons: "^0.11.0"
     flutter_test:
         sdk: flutter
 

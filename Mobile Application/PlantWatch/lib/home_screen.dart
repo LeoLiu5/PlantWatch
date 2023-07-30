@@ -113,7 +113,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                       child: ElevatedButton(
                         style: ButtonStyle(
                             backgroundColor:
-                                MaterialStateProperty.all(Colors.green),
+                                MaterialStateProperty.all(Colors.blue),
                             // Circular corner
                             shape: MaterialStateProperty.all(
                                 const StadiumBorder(
