@@ -188,7 +188,7 @@ void setup() {
   Firebase.reconnectWiFi(true);
   waitForSync();
   GB.setLocation("Europe/London");
-  // removeAllFiles();
+  removeAllFiles();
 
 }
 
@@ -229,4 +229,21 @@ void loop() {
   }
 
   delay(1000 * 300);
+}
+void removeAllFiles() {
+  Serial.println("Removing all files from SPIFFS...");
+  File root = SPIFFS.open("/");
+  File file = root.openNextFile();
+  while (file) {
+    String filename = file.name();
+    Serial.print("Removing file: ");
+    Serial.println(filename);
+    if (SPIFFS.remove(filename)) {
+      Serial.println("File removed");
+    } else {
+      Serial.println("Failed to remove file");
+    }
+    file = root.openNextFile();
+  }
+  Serial.println("All files removed from SPIFFS");
 }

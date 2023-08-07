@@ -599,7 +599,7 @@ class _statusState extends State<status> with ScreenLoader {
                                           padding: const EdgeInsets.only(
                                               left: 4, bottom: 3),
                                           child: Text(
-                                            '${9 - (distance)} cm',
+                                            '${8 - (distance)} cm',
                                             textAlign: TextAlign.center,
                                             style: TextStyle(
                                               fontFamily: AppTheme.fontName,
@@ -871,7 +871,7 @@ class _statusState extends State<status> with ScreenLoader {
                                         CrossAxisAlignment.center,
                                     children: <Widget>[
                                       Text(
-                                        ' ${9 - (distance)} cm',
+                                        ' ${8 - (distance)} cm',
                                         textAlign: TextAlign.center,
                                         style: TextStyle(
                                           fontFamily: AppTheme.fontName,
@@ -897,10 +897,10 @@ class _statusState extends State<status> with ScreenLoader {
                                         AppTheme.nearlyDarkBlue,
                                         AppTheme.nearlyDarkBlue,
                                       ],
-                                      //The maxmium distance is 6 cm.
+                                      //The maxmium distance is 4 cm.
                                       //Tne responsive circle is 360 degree and is then
-                                      //divided into 6 portions (60 degrees each):
-                                      angle: (60 * distance).toDouble()),
+                                      //divided into 6 portions (90 degrees each):
+                                      angle: (90 * (8 - distance)).toDouble()),
                                   child: const SizedBox(
                                     width: 108,
                                     height: 108,
@@ -1066,7 +1066,7 @@ class _statusState extends State<status> with ScreenLoader {
                                 padding:
                                     const EdgeInsets.only(left: 7.0, top: 5),
                                 child: Text(
-                                  '560 ~ 840 ppm',
+                                  '300 ~ 840 ppm',
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                     fontFamily: AppTheme.fontName,
@@ -1184,7 +1184,7 @@ class _statusState extends State<status> with ScreenLoader {
                     ],
                   ),
                   child: WaveView(
-                    percentageValue: (TDS - 560) / 280 * 100,
+                    percentageValue: (TDS - 360) / 540 * 100,
                   ),
                 ),
               )

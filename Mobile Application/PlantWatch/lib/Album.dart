@@ -544,8 +544,8 @@ class _FullScreenImageState extends State<FullScreenImage> {
       // Resize image for model input (Mobilenet use [224, 224])
       final imageInput = img.copyResize(
         image!,
-        width: 96,
-        height: 96,
+        width: 160,
+        height: 160,
       );
 
       // Get image matrix representation [224, 224, 3]
@@ -578,7 +578,7 @@ class _FullScreenImageState extends State<FullScreenImage> {
     // Set tensor input [1, 224, 224, 3]
     final input = [imageMatrix];
     // Set tensor output [1, 2]
-    final output = [List<int>.filled(2, 0)];
+    final output = [List<int>.filled(4, 0)];
 
     // Run inference
     interpreter.run(input, output);
