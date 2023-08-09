@@ -44,7 +44,7 @@ int analogBuffer[SCOUNT];
 int analogBufferTemp[SCOUNT];
 int analogBufferIndex = 0, copyIndex = 0;
 float averageVoltage = 0, tdsValue = 0, temperature = 25;
-
+bool isLedOn = false; // Track LED state
 void setup() {
   Serial.begin(115200);
   // run initialisation functions
@@ -136,9 +136,27 @@ void loop() {
     }
   }
   static unsigned long ledTimepoint = millis();
-  if (millis() - ledTimepoint > 12UL * 60UL * 60UL * 1000UL) {
+  if (millis() - ledTimepoint > 18UL * 60UL * 60UL * 1000UL && !isLedOn) {
     ledTimepoint = millis();
-
+    FirebaseJson content;
+    if (digitalRead(LED_PIN) == HIGH) {
+      content.set("fields/now/stringValue", String("on").c_str());
+      digitalWrite(LED_PIN, LOW);
+    } else {
+      content.set("fields/now/stringValue", String("off").c_str());
+      digitalWrite(LED_PIN, HIGH);
+      
+    };
+    if (Firebase.Firestore.patchDocument(&fbdo, FIREBASE_PROJECT_ID, "", LEDstatus.c_str(), content.raw(), "now")) {
+      // Serial.print("ok\n%s\n\n", fbdo.payload().c_str());
+      return;
+    } else {
+      Serial.println(fbdo.errorReason());
+    }
+    isLedOn = true;
+  }
+  if (millis() - ledTimepoint > 4UL * 60UL * 60UL * 1000UL && isLedOn) {
+    ledTimepoint = millis();
     FirebaseJson content;
     if (digitalRead(LED_PIN) == HIGH) {
       content.set("fields/now/stringValue", String("on").c_str());
@@ -147,15 +165,14 @@ void loop() {
       content.set("fields/now/stringValue", String("off").c_str());
       digitalWrite(LED_PIN, HIGH);
     };
-
     if (Firebase.Firestore.patchDocument(&fbdo, FIREBASE_PROJECT_ID, "", LEDstatus.c_str(), content.raw(), "now")) {
       // Serial.print("ok\n%s\n\n", fbdo.payload().c_str());
       return;
     } else {
       Serial.println(fbdo.errorReason());
     }
+    isLedOn = false;
   }
-
   static unsigned long analogSampleTimepoint = millis();
   if (millis() - analogSampleTimepoint > 480U) {
     analogSampleTimepoint = millis();
