@@ -22,6 +22,7 @@ String LEDstatus = "LED/Status";
 #include <addons/RTDBHelper.h>
 /* 3. Define the RTDB URL */
 #define DATABASE_URL "lettucewatch-ab76c-default-rtdb.europe-west1.firebasedatabase.app"
+//<databaseName>.firebaseio.com or <databaseName>.<region>.firebasedatabase.app
 #define FIREBASE_AUTH "LEWg3dqwjHWWHffjsmBNfDsNTVccIEU3CW4eEfLe"
 #define FIREBASE_HOST "testel-23702.firebaseio.com"
 float hum;   //Stores humidity value
