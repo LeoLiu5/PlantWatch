@@ -10,4 +10,6 @@ This project combined the Internet of Things (IoT), mobile application developme
 
 🚗 Find more details about the [Physical Model](https://github.com/LeoLiu5/PlantWatch/tree/main/Physical%20model)
 
+Click on the image below to watch the demo video:
+
 [![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/Z-ft3IRLkws/0.jpg)](https://youtu.be/Z-ft3IRLkws)
