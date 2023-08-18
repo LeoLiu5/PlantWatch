@@ -1,4 +1,4 @@
-# lettucewatch
+# PlantWatch
 
 A new Flutter project.
 
