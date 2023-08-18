@@ -53,22 +53,13 @@ FirebaseConfig configF;
 
 // Capture Photo and Save it to SPIFFS
 void capturePhotoSaveSpiffs() {
-  Serial.println("Taking picture...");
+
   camera_fb_t* fb = NULL;
 
   // Take a photo with the camera
   Serial.println("Taking a photo...");
-//   int flash_PIN = 25; //GPIO the LED is connected to, don't forget a current limiting resistor
+  fb = esp_camera_fb_get();
 
-// pinMode(flash_PIN, OUTPUT);
-
-// digitalWrite(flash_PIN, HIGH);
-
-// delay(5); //just to make sure the image is well lit
-
-fb = esp_camera_fb_get();
-
-// digitalWrite(flash_PIN, LOW);
   if (!fb) {
     Serial.println("Camera capture failed");
     return;
@@ -135,7 +126,7 @@ void initCamera() {
   config.pin_reset = RESET_GPIO_NUM;
   config.xclk_freq_hz = 20000000;
   config.pixel_format = PIXFORMAT_JPEG;
-config.grab_mode = CAMERA_GRAB_LATEST;
+  config.grab_mode = CAMERA_GRAB_LATEST;
   if (psramFound()) {
     config.frame_size = FRAMESIZE_UXGA;
     config.jpeg_quality = 10;
@@ -152,13 +143,12 @@ config.grab_mode = CAMERA_GRAB_LATEST;
     ESP.restart();
   }
   sensor_t * s = esp_camera_sensor_get();
-s->set_brightness(s, 2); 
-s->set_contrast(s, 2);       // -2 to 2
-s->set_saturation(s, -2);     // -2 to 2
-       s->set_gain_ctrl(s, 1);                       // auto gain on
-       s->set_exposure_ctrl(s, 1);                   // auto exposure on
-       s->set_awb_gain(s, 1);                        // Auto White Balance enable (0 or 1)
-
+  s->set_brightness(s, 2); 
+  s->set_contrast(s, 2);       // -2 to 2
+  s->set_saturation(s, -2);    // -2 to 2
+  s->set_gain_ctrl(s, 1);      // auto gain on
+  s->set_exposure_ctrl(s, 1);  // auto exposure on
+  s->set_awb_gain(s, 1);       // Auto White Balance enable (0 or 1)
 }
 
 void setup() {
@@ -188,24 +178,19 @@ void setup() {
   Firebase.reconnectWiFi(true);
   waitForSync();
   GB.setLocation("Europe/London");
+  listAllFiles();
   removeAllFiles();
-
+  listAllFiles();
 }
 
 void listAllFiles(){
- 
   File root = SPIFFS.open("/");
- 
   File file = root.openNextFile();
- 
   while(file){
- 
       Serial.print("FILE: ");
       Serial.println(file.name());
- 
       file = root.openNextFile();
   }
- 
 }
 
 void loop() {
@@ -227,9 +212,9 @@ void loop() {
       Serial.println(fbdo.errorReason());
     }
   }
-
   delay(1000 * 300);
 }
+
 void removeAllFiles() {
   Serial.println("Removing all files from SPIFFS...");
   File root = SPIFFS.open("/");

@@ -161,13 +161,13 @@ class _FolderListScreenState extends State<FolderListScreenProgress> {
     final command = <String>[
       '-y', // Force overwrite
       '-framerate',
-      '30', // Adjust the framerate (frames per second) for smoother playback
+      '45', // Adjust the framerate (frames per second) for smoother playback
       '-i',
       '${tempDir.path}/%d.jpg',
       '-c:v',
-      'libx264', // Change the video codec to improve performance
+      'libx265', // Change the video codec to improve performance
       '-crf',
-      '18', // Adjust the video quality (lower values result in better quality but larger file size)
+      '10', // Adjust the video quality (lower values result in better quality but larger file size)
       '-preset',
       'ultrafast', // Adjust the preset for faster video encoding
       '-movflags',
@@ -351,7 +351,7 @@ class _FolderListScreenState extends State<FolderListScreenProgress> {
                     ],
                   )
                 : Text(
-                    'Generate Video           (select the dates from the dropdown menu, make sure the order is correct)',
+                    'Generate Video               (select the dates from the dropdown menu, make sure the order is correct)',
                     style: TextStyle(
                       fontSize: 19,
                       fontWeight: FontWeight.bold,

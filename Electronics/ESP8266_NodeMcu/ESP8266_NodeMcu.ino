@@ -1,5 +1,9 @@
+#include <ezTime.h>
 #include <ESP8266WiFi.h>
 #include <DHT.h>
+#include <Firebase_ESP_Client.h>
+#include <addons/TokenHelper.h>
+#include <addons/RTDBHelper.h> // Provide the RTDB payload printing info and other helper functions.
 
 #define LED_PIN 16  //D0
 #define TdsSensorPin A0
@@ -7,45 +11,40 @@
 #define SCOUNT 30
 #define DHTPIN 5            // D1 pin we're connected to
 #define DHTTYPE DHT22       // DHT 22  (AM2302)
-DHT dhtA(DHTPIN, DHTTYPE);  //// Initialize DHT sensor for normal 16mhz Arduino
-#include <ezTime.h>
+#define FIREBASE_PROJECT_ID "lettucewatch-ab76c"
+#define API_KEY "AIzaSyD7a2TB4xm3WEkmEX07xf30BFMV7EPOEPU" // Replace with your Firebase project API Key
+#define DATABASE_URL "lettucewatch-ab76c-default-rtdb.europe-west1.firebasedatabase.app" // Define the RTDB URL databaseName>.firebaseio.com or <databaseName>.<region>.firebasedatabase.app
+
+// defines variables
 const int trigPin = 2;  //D4
 const int echoPin = 0;  //D3
-// defines variables
+
 long duration;
 int distance;
 String LEDstatus = "LED/Status";
-#define FIREBASE_PROJECT_ID "lettucewatch-ab76c"
-#include <Firebase_ESP_Client.h>
-#include <addons/TokenHelper.h>
-// Provide the RTDB payload printing info and other helper functions.
-#include <addons/RTDBHelper.h>
-/* 3. Define the RTDB URL */
-#define DATABASE_URL "lettucewatch-ab76c-default-rtdb.europe-west1.firebasedatabase.app"
-//<databaseName>.firebaseio.com or <databaseName>.<region>.firebasedatabase.app
-#define FIREBASE_AUTH "LEWg3dqwjHWWHffjsmBNfDsNTVccIEU3CW4eEfLe"
-#define FIREBASE_HOST "testel-23702.firebaseio.com"
+
+DHT dhtA(DHTPIN, DHTTYPE);  // Initialize DHT sensor for normal 16mhz Arduino
 float hum;   //Stores humidity value
 float temp;  //Stores temperature value
 const char* ssid = "UCL_IoT";
 const char* password = "";
-// Date and time
-Timezone GB;
-// Replace with your Firebase project API Key
-#define API_KEY "AIzaSyD7a2TB4xm3WEkmEX07xf30BFMV7EPOEPU"
+
+Timezone GB;  // Date & time
+
 // Define Firebase Data objects
 FirebaseData fbdo;
 FirebaseAuth auth;
 FirebaseConfig configF;
-// Replace with authorized email and corresponding password
-#define USER_EMAIL "liu2@gmail.com"
-#define USER_PASSWORD "123456"
+
+#define USER_EMAIL "liu2@gmail.com" // Replace with authorized email and corresponding password
+#define USER_PASSWORD "123456"  // Replace with corresponding password
 unsigned long count = 0;
 int analogBuffer[SCOUNT];
 int analogBufferTemp[SCOUNT];
 int analogBufferIndex = 0, copyIndex = 0;
 float averageVoltage = 0, tdsValue = 0, temperature = 25;
 bool isLedOn = false; // Track LED state
+
 void setup() {
   Serial.begin(115200);
   // run initialisation functions
@@ -56,8 +55,7 @@ void setup() {
   pinMode(LED_PIN, OUTPUT);
   pinMode(DHTPIN, INPUT);
   dhtA.begin();
-  Serial.print("ESP Board MAC Address:  ");
-  Serial.println(WiFi.macAddress());
+
   configF.api_key = API_KEY;
   auth.user.email = USER_EMAIL;
   auth.user.password = USER_PASSWORD;
@@ -65,10 +63,10 @@ void setup() {
   configF.max_token_generation_retry = 5;
   Firebase.begin(&configF, &auth);
   Firebase.reconnectWiFi(true);
-  // digitalWrite(LED_PIN, HIGH);
 
   syncDate();
 }
+
 void startWifi() {
   // We start by connecting to a WiFi network
   Serial.println();
@@ -78,24 +76,46 @@ void startWifi() {
 
   // check to see if connected and wait until you are
   while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
+    switch (WiFi.status()) {
+      case WL_NO_SSID_AVAIL:
+        Serial.print(ssid);
+        Serial.println(" - Not Exist.");
+        break;
+      case WL_CONNECT_FAILED:
+        Serial.print(ssid);
+        Serial.println(" - Connection Fail.");
+        break;
+      case WL_CONNECTION_LOST:
+        Serial.print(ssid);
+        Serial.println(" - Connection List.");
+        break;
+      case WL_WRONG_PASSWORD:
+        Serial.print(ssid);
+        Serial.println(" - Wrong Password.");
+        break;
+      case WL_DISCONNECTED:
+        Serial.print(ssid);
+        Serial.println(" - Disconnected.");
+        break;
+      default:
+        Serial.print(ssid);
+        Serial.println(" - Error(Default Code).");
+        break;
+    }
+    delay(1000);
+    Serial.print("Connecting...");
   }
-  Serial.println("");
-  Serial.println("WiFi connected");
-  Serial.print("IP address: ");
-  Serial.println(WiFi.localIP());
 }
 
 void loop() {
-  // Check Firebase connection every 5 minutes (adjust the interval as needed)
+  // Check Firebase connection every 2 hours (adjust the interval as needed)
   static unsigned long firebaseCheckTimepoint = millis();
   if (millis() - firebaseCheckTimepoint > 7200000U) {
     firebaseCheckTimepoint = millis();
     checkFirebaseConnection();
   }
 
-  // Send keep-alive request every 2 hour (adjust the interval as needed)
+  // Send keep-alive request every 2 hours (adjust the interval as needed)
   static unsigned long keepAliveTimepoint = millis();
   if (millis() - keepAliveTimepoint > 7200000U) {
     keepAliveTimepoint = millis();
@@ -136,6 +156,7 @@ void loop() {
       return;
     }
   }
+
   static unsigned long ledTimepoint = millis();
   if (millis() - ledTimepoint > 18UL * 60UL * 60UL * 1000UL && !isLedOn) {
     ledTimepoint = millis();
@@ -146,16 +167,15 @@ void loop() {
     } else {
       content.set("fields/now/stringValue", String("off").c_str());
       digitalWrite(LED_PIN, HIGH);
-      
     };
     if (Firebase.Firestore.patchDocument(&fbdo, FIREBASE_PROJECT_ID, "", LEDstatus.c_str(), content.raw(), "now")) {
-      // Serial.print("ok\n%s\n\n", fbdo.payload().c_str());
       return;
     } else {
       Serial.println(fbdo.errorReason());
     }
     isLedOn = true;
   }
+
   if (millis() - ledTimepoint > 4UL * 60UL * 60UL * 1000UL && isLedOn) {
     ledTimepoint = millis();
     FirebaseJson content;
@@ -167,13 +187,13 @@ void loop() {
       digitalWrite(LED_PIN, HIGH);
     };
     if (Firebase.Firestore.patchDocument(&fbdo, FIREBASE_PROJECT_ID, "", LEDstatus.c_str(), content.raw(), "now")) {
-      // Serial.print("ok\n%s\n\n", fbdo.payload().c_str());
       return;
     } else {
       Serial.println(fbdo.errorReason());
     }
     isLedOn = false;
   }
+  
   static unsigned long analogSampleTimepoint = millis();
   if (millis() - analogSampleTimepoint > 480U) {
     analogSampleTimepoint = millis();
@@ -182,6 +202,7 @@ void loop() {
     if (analogBufferIndex == SCOUNT)
       analogBufferIndex = 0;
   }
+
   static unsigned long printTimepoint = millis();
   if (millis() - printTimepoint > 600000U) {
     printTimepoint = millis();
@@ -191,8 +212,7 @@ void loop() {
     float compensationCoefficient = 1.0 + 0.02 * (temperature - 25.0);
     float compensationVolatge = averageVoltage / compensationCoefficient;
     tdsValue = (133.42 * compensationVolatge * compensationVolatge * compensationVolatge - 255.86 * compensationVolatge * compensationVolatge + 857.39 * compensationVolatge) * 0.5;
-    //Read data and store it to variables hum and temp
-
+    
     digitalWrite(trigPin, LOW);
     delayMicroseconds(2);
 
@@ -208,11 +228,11 @@ void loop() {
     distance = duration * 0.034 / 2;
     String documentPath = String(GB.dateTime("Y-m-d")) + "/" + String(GB.dateTime("H:i"));
     FirebaseJson content;
-
     content.set("fields/temperature/doubleValue", String(dhtA.readTemperature()).c_str());
     content.set("fields/humidity/doubleValue", String(dhtA.readHumidity()).c_str());
     content.set("fields/TDS/doubleValue", String(tdsValue).c_str());
     content.set("fields/distance/doubleValue", String(distance).c_str());
+
     if (Firebase.Firestore.patchDocument(&fbdo, FIREBASE_PROJECT_ID, "", documentPath.c_str(), content.raw(), "temperature,humidity,TDS,distance")) {
       // Serial.print("ok\n%s\n\n", fbdo.payload().c_str());
       return;
@@ -226,9 +246,6 @@ void loop() {
     } else {
       Serial.println(fbdo.errorReason());
     }
-
-
-
 
     delay(1000);  // Wait for 1 second before publishing again
   }
@@ -254,6 +271,7 @@ int getMedianNum(int bArray[], int iFilterLen) {
     bTemp = (bTab[iFilterLen / 2] + bTab[iFilterLen / 2 - 1]) / 2;
   return bTemp;
 }
+
 void syncDate() {
   // get real date and time
   waitForSync();
@@ -262,18 +280,44 @@ void syncDate() {
   GB.setLocation("Europe/London");
   Serial.println("London time: " + GB.dateTime());
 }
+
 void checkFirebaseConnection() {
   if (!Firebase.ready()) {
     Serial.println("Firebase connection lost. Reconnecting...");
     WiFi.disconnect(true);
     delay(1000);
     WiFi.begin(ssid, password);
-    while (WiFi.status() != WL_CONNECTED) {
-      delay(500);
-      Serial.print(".");
+  // check to see if connected and wait until you are
+  while (WiFi.status() != WL_CONNECTED) {
+    switch (WiFi.status()) {
+      case WL_NO_SSID_AVAIL:
+        Serial.print(ssid);
+        Serial.println(" - Not Exist.");
+        break;
+      case WL_CONNECT_FAILED:
+        Serial.print(ssid);
+        Serial.println(" - Connection Fail.");
+        break;
+      case WL_CONNECTION_LOST:
+        Serial.print(ssid);
+        Serial.println(" - Connection List.");
+        break;
+      case WL_WRONG_PASSWORD:
+        Serial.print(ssid);
+        Serial.println(" - Wrong Password.");
+        break;
+      case WL_DISCONNECTED:
+        Serial.print(ssid);
+        Serial.println(" - Disconnected.");
+        break;
+      default:
+        Serial.print(ssid);
+        Serial.println(" - Error(Default Code).");
+        break;
     }
-    Serial.println("\nWiFi reconnected");
-
+    delay(1000);
+    Serial.print("Connecting...");
+  }
     Firebase.begin(&configF, &auth);
     if (Firebase.ready()) {
       Serial.println("Reconnected to Firebase");
@@ -282,8 +326,6 @@ void checkFirebaseConnection() {
     }
   }
 }
-
-
 
 void sendKeepAliveRequest() {
   Firebase.reconnectWiFi(true);
