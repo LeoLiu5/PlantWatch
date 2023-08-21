@@ -179,8 +179,7 @@ void setup() {
   waitForSync();
   GB.setLocation("Europe/London");
   listAllFiles();
-  removeAllFiles();
-  listAllFiles();
+  SPIFFS.format(); // Format SPIFFS (this will erase all files)
 }
 
 void listAllFiles(){
@@ -212,23 +211,5 @@ void loop() {
       Serial.println(fbdo.errorReason());
     }
   }
-  delay(1000 * 300);
-}
-
-void removeAllFiles() {
-  Serial.println("Removing all files from SPIFFS...");
-  File root = SPIFFS.open("/");
-  File file = root.openNextFile();
-  while (file) {
-    String filename = file.name();
-    Serial.print("Removing file: ");
-    Serial.println(filename);
-    if (SPIFFS.remove(filename)) {
-      Serial.println("File removed");
-    } else {
-      Serial.println("Failed to remove file");
-    }
-    file = root.openNextFile();
-  }
-  Serial.println("All files removed from SPIFFS");
+  ESP.deepSleep(10 * 60 * 1000000); // Sleep for 10 minutes (10 * 60 * 10^6 microseconds)
 }
