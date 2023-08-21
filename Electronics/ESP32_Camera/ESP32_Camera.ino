@@ -211,5 +211,5 @@ void loop() {
       Serial.println(fbdo.errorReason());
     }
   }
-  ESP.deepSleep(10 * 60 * 1000000); // Sleep for 10 minutes (10 * 60 * 10^6 microseconds)
+  ESP.deepSleep(5 * 60 * 1000000); // Sleep for 5 minutes (10 * 60 * 10^6 microseconds)
 }
