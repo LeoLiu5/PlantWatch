@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:developer';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:screen_loader/screen_loader.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'app_theme.dart';
@@ -247,7 +249,7 @@ class _FolderListScreenState extends State<FolderListScreenProgress> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => YoutubeVideoPlayerScreen("aZHMp5tJoS4"),
+        builder: (context) => YoutubeVideoPlayerScreen("Z-ft3IRLkws"),
       ),
     );
   }
@@ -296,7 +298,7 @@ class _FolderListScreenState extends State<FolderListScreenProgress> {
               ),
             ),
             child: Text(
-              'Time-Lapse Video',
+              'App Demo',
               style: TextStyle(
                 fontSize: 19,
                 fontWeight: FontWeight.bold,
@@ -316,7 +318,7 @@ class _FolderListScreenState extends State<FolderListScreenProgress> {
               ),
             ),
             child: Text(
-              'Play Local Video',
+              'Local Time-Lapse Video',
               style: TextStyle(
                 fontSize: 19,
                 fontWeight: FontWeight.bold,
@@ -341,7 +343,7 @@ class _FolderListScreenState extends State<FolderListScreenProgress> {
                       CircularProgressIndicator(),
                       SizedBox(height: 16.0),
                       Text(
-                        'Creating Video...',
+                        'Creating Time-Lapse Video...',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -351,7 +353,7 @@ class _FolderListScreenState extends State<FolderListScreenProgress> {
                     ],
                   )
                 : Text(
-                    'Generate Video               (select the dates from the dropdown menu, make sure the order is correct)',
+                    'Generate Time-Lapse Video',
                     style: TextStyle(
                       fontSize: 19,
                       fontWeight: FontWeight.bold,
@@ -405,7 +407,7 @@ class _FolderListScreenState extends State<FolderListScreenProgress> {
             ),
             child: Text(
               videoPath.isNotEmpty
-                  ? 'Video Generated Successfully!                  (click here to play)'
+                  ? 'Video Generated Successfully!'
                   : 'New Video Not Available',
               style: TextStyle(
                 fontSize: 19,
@@ -427,7 +429,7 @@ class _FolderListScreenState extends State<FolderListScreenProgress> {
           if (videoGenerationProgress == 1.0) ...[
             SizedBox(height: 32.0),
             Text(
-              'Generating the Newest Time-Lapse Video ...',
+              'Generating the Time-Lapse Video ...',
               style: TextStyle(
                 fontSize: 25,
                 fontWeight: FontWeight.bold,
@@ -449,7 +451,7 @@ class _FolderListScreenState extends State<FolderListScreenProgress> {
             ),
             SizedBox(height: 32.0),
             Text(
-              "Please stay on this page",
+              "Pleast don't leave...",
               style: TextStyle(
                 fontSize: 20.0,
                 fontWeight: FontWeight.bold,
@@ -582,7 +584,14 @@ class YoutubeVideoPlayerScreen extends StatefulWidget {
 class _YoutubeVideoPlayerScreenState extends State<YoutubeVideoPlayerScreen>
     with ScreenLoader {
   late YoutubePlayerController _controller;
+  late TextEditingController _idController;
+  late TextEditingController _seekToController;
 
+  late PlayerState _playerState;
+  late YoutubeMetaData _videoMetaData;
+  double _volume = 100;
+  bool _muted = false;
+  bool _isPlayerReady = false;
   @override
   void initState() {
     super.initState();
@@ -593,19 +602,35 @@ class _YoutubeVideoPlayerScreenState extends State<YoutubeVideoPlayerScreen>
       flags: YoutubePlayerFlags(
         autoPlay: true,
         mute: false,
+        controlsVisibleAtStart: false, // Hide controls initially
+        disableDragSeek: false,
       ),
     );
 
     _controller.addListener(() {
       // Add actions to perform when the video player is ready
+      _idController = TextEditingController();
+      _seekToController = TextEditingController();
+      _videoMetaData = const YoutubeMetaData();
+      _playerState = PlayerState.unknown;
     });
 
     stopLoading();
   }
 
+  void listener() {
+    if (_isPlayerReady && mounted && !_controller.value.isFullScreen) {
+      setState(() {
+        _playerState = _controller.value.playerState;
+        _videoMetaData = _controller.metadata;
+      });
+    }
+  }
+
   @override
   void dispose() {
     _controller.dispose();
+    _seekToController.dispose();
     super.dispose();
   }
 
@@ -627,61 +652,103 @@ class _YoutubeVideoPlayerScreenState extends State<YoutubeVideoPlayerScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: Stack(
-        children: [
-          Center(
-            child: YoutubePlayer(
-              controller: _controller,
-              showVideoProgressIndicator: true,
-              progressIndicatorColor: Colors.blueAccent,
-              progressColors: ProgressBarColors(
-                playedColor: Colors.blue,
-                handleColor: Colors.blueAccent,
+    return YoutubePlayerBuilder(
+      onExitFullScreen: () {
+        // The player forces portraitUp after exiting fullscreen. This overrides the behaviour.
+        // SystemChrome.setPreferredOrientations(DeviceOrientation.values);
+      },
+      player: YoutubePlayer(
+        controller: _controller,
+        showVideoProgressIndicator: true,
+        progressIndicatorColor: Colors.blueAccent,
+        topActions: <Widget>[
+          const SizedBox(width: 8.0),
+          Expanded(
+            child: Text(
+              _controller.metadata.title,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 18.0,
               ),
-              onReady: () {
-                // Add actions to perform when the video player is ready
-              },
-              onEnded: (error) {
-                // Handle any errors that occur while playing the video
-              },
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
             ),
           ),
-          GestureDetector(
-            onTap: _toggleControls,
-            child: AnimatedOpacity(
-              opacity: _controller.value.isPlaying ? 0.0 : 1.0,
-              duration: Duration(milliseconds: 300),
-              child: Container(
-                color: Colors.transparent,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    SizedBox(height: 40.0), // Top spacing
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        IconButton(
-                          icon: Icon(
-                            Icons.arrow_back,
-                            size: 32.0,
-                            color: Colors.white,
-                          ),
-                          onPressed: () {
-                            Navigator.pop(context);
-                          },
-                        ),
-                      ],
-                    ),
-                    Expanded(child: Container()), // Spacer
-                    SizedBox(height: 40.0), // Bottom spacing
-                  ],
-                ),
-              ),
+          IconButton(
+            icon: const Icon(
+              Icons.settings,
+              color: Colors.white,
+              size: 25.0,
             ),
+            onPressed: () {
+              log('Settings Tapped!');
+            },
           ),
         ],
+        onReady: () {
+          _isPlayerReady = true;
+        },
+      ),
+      builder: (context, player) => Scaffold(
+        // appBar:
+        body: ListView(
+          children: [
+            player,
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Container(
+                    margin: EdgeInsets.symmetric(
+                        vertical: 45.0), // Add spacing between text and button
+                    child: const Text(
+                      "PlantWatch provides real-time information about the status of the hydroponics system, making monitoring and maintenance more convenient.",
+                      style:
+                          TextStyle(fontWeight: FontWeight.w600, fontSize: 20),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  Container(
+                    margin: EdgeInsets.symmetric(
+                        vertical: 10.0), // Add spacing between text and button
+                    child: const Text(
+                      "By reducing manual efforts and enabling remote monitoring, PlantWatch aims to enhance the efficiency and success of hydroponic cultivation while providing users with greater convenience and control.",
+                      style:
+                          TextStyle(fontWeight: FontWeight.w600, fontSize: 20),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  Container(
+                    margin: EdgeInsets.only(
+                        top: 50.0), // Add spacing below the button
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.pop(
+                          context), // Navigate back to the previous screen
+                      style: ElevatedButton.styleFrom(
+                        primary: Colors.black,
+                        onPrimary: Colors.white,
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: Text(
+                        'Back',
+                        style: TextStyle(
+                          fontSize: 19,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1.4,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
